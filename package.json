@@ -1,0 +1,28 @@
+{
+  "name": "weixin-claw-channel",
+  "version": "1.0.0",
+  "description": "WeChat channel for AI assistants via iLink protocol",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "bin": {
+    "weixin-claw": "src/cli/index.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./adapter": "./src/adapter/index.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@opencode-ai/sdk": "^1.2.27",
+    "hono": "^4.7.7",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "@types/bun": "latest"
+  }
+}
