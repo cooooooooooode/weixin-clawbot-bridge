@@ -169,6 +169,46 @@ export function createRouter() {
     })
   })
 
+  // --- Send text message ---
+
+  app.post("/api/send", async (c) => {
+    const body = await c.req.json<{ to?: string; text?: string }>()
+    const to = body.to
+    if (!to) return c.json({ error: "missing 'to' field" }, 400)
+    if (!body.text) return c.json({ error: "missing 'text' field" }, 400)
+
+    const ctx = getSendContext(to)
+    if (!ctx) {
+      const users = listSendContextUsers()
+      return c.json({
+        error: `no context for user '${to}'. Available users: ${users.join(", ") || "(none yet — wait for first inbound message)"}`,
+      }, 404)
+    }
+
+    try {
+      const plain = markdownToPlainText(body.text)
+      const chunks = []
+      for (let i = 0; i < plain.length; i += 4000) {
+        chunks.push(plain.slice(i, i + 4000))
+      }
+      if (chunks.length === 0) chunks.push(plain)
+
+      for (const chunk of chunks) {
+        await sendMessageWeixin({
+          to,
+          text: chunk,
+          opts: { baseUrl: ctx.baseUrl, token: ctx.token, contextToken: ctx.contextToken },
+        })
+      }
+      logger.info(`[api/send] sent to=${to} len=${plain.length}`)
+      emit("weixin.message", { direction: "outbound", to, type: "text" })
+      return c.json({ ok: true, to, length: plain.length })
+    } catch (err) {
+      logger.error(`[api/send] error: ${err}`)
+      return c.json({ error: String(err) }, 500)
+    }
+  })
+
   // --- Send media (image/video/file) ---
 
   app.post("/api/sendMedia", async (c) => {

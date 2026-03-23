@@ -169,8 +169,82 @@ Example:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/login/qr` | POST | Get login QR code |
+| `/api/status` | GET | Get service status |
+| `/api/account` | GET | Get account list |
+| `/api/send` | POST | Send text message |
 | `/api/sendMedia` | POST | Send media file |
 | `/events` | GET | SSE event stream (status updates) |
+
+### Send Text Message
+
+```bash
+curl -X POST http://localhost:3200/api/send \
+  -H "Content-Type: application/json" \
+  -d '{"to": "user_id", "text": "Hello"}'
+```
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `to` | string | Yes | Target user ID (WeChat user ID) |
+| `text` | string | Yes | Text content to send |
+
+**Note**: The `to` parameter requires prior message context from that user (contextToken). Check `/api/status` for users with established context.
+
+### Send Media File
+
+```bash
+curl -X POST http://localhost:3200/api/sendMedia \
+  -H "Content-Type: application/json" \
+  -d '{"to": "user_id", "file": "/path/to/image.jpg"}'
+```
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `to` | string | Yes | Target user ID |
+| `file` | string | Yes | Absolute path to local file |
+| `text` | string | No | Additional text caption |
+
+### SSE Event Stream
+
+Connect to `/events` for real-time events:
+
+```bash
+curl http://localhost:3200/events
+```
+
+**Event types:**
+
+| Event | Description |
+|-------|-------------|
+| `weixin.connected` | SSE connection established |
+| `weixin.qr` | Login QR code generated |
+| `weixin.scanned` | QR code scanned |
+| `weixin.confirmed` | Login confirmed |
+| `weixin.message` | Message sent/received |
+| `weixin.heartbeat` | Heartbeat (every 30s) |
+
+### AI Proactive Messaging Example
+
+AI can proactively send messages to WeChat users via HTTP API:
+
+```bash
+# Check users with established context
+curl http://localhost:3200/api/status
+
+# Send text
+curl -X POST http://localhost:3200/api/send \
+  -H "Content-Type: application/json" \
+  -d '{"to": "wx_user_xxx", "text": "This is a proactive message from AI"}'
+
+# Send image
+curl -X POST http://localhost:3200/api/sendMedia \
+  -H "Content-Type: application/json" \
+  -d '{"to": "wx_user_xxx", "file": "/tmp/generated_image.png"}'
+```
 
 ## State Directory
 

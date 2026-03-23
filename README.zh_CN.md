@@ -171,8 +171,82 @@ bun run src/cli/index.ts start --adapter echo
 | 端点 | 方法 | 说明 |
 |------|------|------|
 | `/api/login/qr` | POST | 获取登录二维码 |
+| `/api/status` | GET | 获取服务状态 |
+| `/api/account` | GET | 获取账号列表 |
+| `/api/send` | POST | 发送文本消息 |
 | `/api/sendMedia` | POST | 发送媒体文件 |
 | `/events` | GET | SSE 事件流（状态更新） |
+
+### 发送文本消息
+
+```bash
+curl -X POST http://localhost:3200/api/send \
+  -H "Content-Type: application/json" \
+  -d '{"to": "user_id", "text": "你好"}'
+```
+
+**请求体：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `to` | string | 是 | 目标用户 ID（微信用户 ID） |
+| `text` | string | 是 | 要发送的文本内容 |
+
+**注意**：`to` 参数需要先收到过该用户的消息才能获取上下文（contextToken）。可通过 `/api/status` 查看已建立上下文的用户列表。
+
+### 发送媒体文件
+
+```bash
+curl -X POST http://localhost:3200/api/sendMedia \
+  -H "Content-Type: application/json" \
+  -d '{"to": "user_id", "file": "/path/to/image.jpg"}'
+```
+
+**请求体：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `to` | string | 是 | 目标用户 ID |
+| `file` | string | 是 | 本地文件的绝对路径 |
+| `text` | string | 否 | 附加文本说明 |
+
+### SSE 事件流
+
+连接 `/events` 可实时接收事件：
+
+```bash
+curl http://localhost:3200/events
+```
+
+**事件类型：**
+
+| 事件 | 说明 |
+|------|------|
+| `weixin.connected` | SSE 连接建立 |
+| `weixin.qr` | 登录二维码生成 |
+| `weixin.scanned` | 二维码已扫描 |
+| `weixin.confirmed` | 登录已确认 |
+| `weixin.message` | 消息收发事件 |
+| `weixin.heartbeat` | 心跳（每 30 秒） |
+
+### AI 主动发送消息示例
+
+AI 可以通过 HTTP API 主动向微信用户发送消息：
+
+```bash
+# 查看已建立上下文的用户
+curl http://localhost:3200/api/status
+
+# 发送文本
+curl -X POST http://localhost:3200/api/send \
+  -H "Content-Type: application/json" \
+  -d '{"to": "wx_user_xxx", "text": "这是 AI 主动发送的消息"}'
+
+# 发送图片
+curl -X POST http://localhost:3200/api/sendMedia \
+  -H "Content-Type: application/json" \
+  -d '{"to": "wx_user_xxx", "file": "/tmp/generated_image.png"}'
+```
 
 ## 状态目录
 
