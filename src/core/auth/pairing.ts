@@ -29,10 +29,10 @@ function safeKey(raw: string): string {
 
 /**
  * Resolve the framework allowFrom file path for a given account.
- * Path: `<credDir>/weixin-claw-<accountId>-allowFrom.json`
+ * Path: `<credDir>/wx-clawbot-<accountId>-allowFrom.json`
  */
 export function resolveFrameworkAllowFromPath(accountId: string): string {
-  const base = safeKey("weixin-claw")
+  const base = safeKey("wx-clawbot")
   const account = safeKey(accountId)
   return path.join(resolveCredentialsDir(), `${base}-${account}-allowFrom.json`)
 }

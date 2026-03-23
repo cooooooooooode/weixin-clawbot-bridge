@@ -139,7 +139,7 @@ if (command === "init") {
   const to = args.values.to
   const file = args.values.file
   if (!to || !file) {
-    console.error("Usage: weixin-claw sendMedia --to <userId> --file <absolutePath>")
+    console.error("Usage: weixin-clawbot-bridge sendMedia --to <userId> --file <absolutePath>")
     process.exit(1)
   }
   const cfg = await load()
@@ -163,7 +163,7 @@ if (command === "init") {
 
 } else {
   console.error(`Unknown command: ${command}`)
-  console.log("Usage: weixin-claw <command> [options]")
+  console.log("Usage: weixin-clawbot-bridge <command> [options]")
   console.log()
   console.log("Commands:")
   console.log("  init       初始化配置 (无参数打开浏览器, 带参数 headless)")

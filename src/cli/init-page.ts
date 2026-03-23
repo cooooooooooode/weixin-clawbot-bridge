@@ -6,7 +6,7 @@ export function html(cfg: Config): string {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>weixin-claw-channel 配置</title>
+<title>weixin-clawbot-bridge 配置</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
@@ -58,7 +58,7 @@ export function html(cfg: Config): string {
 </head>
 <body>
 
-<h1>weixin-claw-channel</h1>
+<h1>weixin-clawbot-bridge</h1>
 <p class="sub">初始化配置向导</p>
 
 <div class="steps">

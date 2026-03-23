@@ -10,6 +10,6 @@ export async function startServer(port: number) {
     fetch: app.fetch,
     idleTimeout: 255,
   })
-  console.log(`[weixin-claw] HTTP server listening on port ${port}`)
+  console.log(`[weixin-clawbot-bridge] HTTP server listening on port ${port}`)
   return server
 }

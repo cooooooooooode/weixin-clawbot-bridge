@@ -41,7 +41,7 @@ export function getContextToken(accountId: string, userId: string): string | und
 // ---------------------------------------------------------------------------
 
 function generateMessageSid(): string {
-  return generateId("weixin-claw")
+  return generateId("wx-clawbot")
 }
 
 /** Inbound context passed to the message pipeline (matches MsgContext shape). */
@@ -50,11 +50,11 @@ export type WeixinMsgContext = {
   From: string
   To: string
   AccountId: string
-  OriginatingChannel: "weixin-claw"
+  OriginatingChannel: "wx-clawbot"
   OriginatingTo: string
   MessageSid: string
   Timestamp?: number
-  Provider: "weixin-claw"
+  Provider: "wx-clawbot"
   ChatType: "direct"
   /** Set by monitor after resolveAgentRoute so dispatchReplyFromConfig uses the correct session. */
   SessionKey?: string
@@ -136,11 +136,11 @@ export function weixinMessageToMsgContext(
     From: from,
     To: from,
     AccountId: accountId,
-    OriginatingChannel: "weixin-claw",
+    OriginatingChannel: "wx-clawbot",
     OriginatingTo: from,
     MessageSid: generateMessageSid(),
     Timestamp: msg.create_time_ms,
-    Provider: "weixin-claw",
+    Provider: "wx-clawbot",
     ChatType: "direct",
   }
   if (msg.context_token) {

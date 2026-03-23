@@ -5,12 +5,12 @@ import { deriveRawAccountId } from "../auth/accounts.js"
 import { resolveStateDir } from "./state-dir.js"
 
 function resolveAccountsDir(): string {
-  return path.join(resolveStateDir(), "weixin-claw", "accounts")
+  return path.join(resolveStateDir(), "accounts")
 }
 
 /**
  * Path to the persistent get_updates_buf file for an account.
- * Stored alongside account data: ~/.weixin-claw/weixin-claw/accounts/{accountId}.sync.json
+ * Stored alongside account data: ~/.weixin-clawbot-bridge/accounts/{accountId}.sync.json
  */
 export function getSyncBufFilePath(accountId: string): string {
   return path.join(resolveAccountsDir(), `${accountId}.sync.json`)

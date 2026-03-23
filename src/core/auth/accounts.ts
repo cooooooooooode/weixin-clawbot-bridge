@@ -31,7 +31,7 @@ export function deriveRawAccountId(id: string): string | undefined {
 // ---------------------------------------------------------------------------
 
 function resolveWeixinStateDir(): string {
-  return path.join(resolveStateDir(), "weixin-claw")
+  return resolveStateDir()
 }
 
 function resolveAccountIndexPath(): string {

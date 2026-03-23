@@ -7,7 +7,7 @@ import { MessageItemType, MessageState, MessageType } from "../api/types.js"
 import type { UploadedFileInfo } from "../cdn/upload.js"
 
 function generateClientId(): string {
-  return generateId("weixin-claw")
+  return generateId("wx-clawbot")
 }
 
 function stripMarkdown(text: string): string {

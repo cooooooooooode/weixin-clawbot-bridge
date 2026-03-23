@@ -1,271 +1,256 @@
-# 微信
+# weixin-clawbot-bridge
 
 [English](./README.md)
 
-OpenClaw 的微信渠道插件，支持通过扫码完成登录授权。
+微信消息渠道桥接器 —— 通过 iLink 协议将微信用户连接到 AI 后端（OpenCode、Webhook 等）。
 
-## 前提条件
+基于 Bun 运行时的 CLI 工具，支持守护进程模式后台运行。
 
-已安装 [OpenClaw](https://docs.openclaw.ai/install)（需要 `openclaw` CLI 可用）。
+## 功能特性
 
-## 一键安装
+- **扫码登录**：终端显示二维码，手机扫码即可完成微信登录
+- **守护进程**：支持后台运行，持久化服务
+- **多适配器**：可插拔的 AI 后端适配器（OpenCode、Webhook、Echo 测试）
+- **媒体支持**：支持发送图片、视频、文件等媒体内容
+- **流式回复**：支持 AI 流式输出，实时显示"正在输入"状态
+- **多账号**：支持同时登录多个微信账号
 
-```bash
-npx -y @tencent-weixin/openclaw-weixin-cli install
-```
+## 快速开始
 
-## 手动安装
+### 前置条件
 
-如果一键安装不适用，可以按以下步骤手动操作：
+- 安装 [Bun](https://bun.sh/) 运行时
 
-### 1. 安装插件
-
-```bash
-openclaw plugins install "@tencent-weixin/openclaw-weixin"
-```
-
-### 2. 启用插件
+### 安装
 
 ```bash
-openclaw config set plugins.entries.openclaw-weixin.enabled true
+git clone <repo-url>
+cd weixin-claw-channel
+bun install
 ```
 
-### 3. 扫码登录
+### 一键初始化（推荐）
 
 ```bash
-openclaw channels login --channel openclaw-weixin
+bun run src/cli/index.ts init
 ```
 
-终端会显示一个二维码，用手机扫码并在手机上确认授权。确认后，登录凭证会自动保存到本地，无需额外操作。
+此命令会自动打开浏览器，进入可视化配置页面：
 
-### 4. 重启 gateway
+1. 选择 AI 后端适配器（OpenCode / Webhook）
+2. 配置相关参数
+3. 扫码登录微信账号
+4. 点击"启动服务"
+
+配置和登录信息会自动保存，服务以后台守护进程方式运行。
+
+### 命令行初始化（Headless）
+
+适用于自动化脚本或无图形界面环境：
 
 ```bash
-openclaw gateway restart
+# OpenCode 适配器
+bun run src/cli/index.ts init --adapter opencode --url http://localhost:3000
+
+# Webhook 适配器
+bun run src/cli/index.ts init --adapter webhook --endpoint http://your-server.com/chat
 ```
 
-## 添加更多微信账号
+Headless 模式需要通过 HTTP API 完成扫码登录：
 
 ```bash
-openclaw channels login --channel openclaw-weixin
+# 获取登录二维码
+curl -X POST http://localhost:3200/api/login/qr
+
+# 监听登录状态（SSE）
+curl http://localhost:3200/events
 ```
 
-每次扫码登录都会创建一个新的账号条目，支持多个微信号同时在线。
-
-## 多账号上下文隔离
-
-默认情况下，所有渠道的 AI 会话共享同一个上下文。如果希望每个微信账号的对话上下文相互隔离：
+### 前台启动（开发调试）
 
 ```bash
-openclaw config set agents.mode per-channel-per-peer
+# 使用 OpenCode 适配器
+bun run src/cli/index.ts start --adapter opencode --port 3200
+
+# 使用 Webhook 适配器
+bun run src/cli/index.ts start --adapter webhook --endpoint http://localhost:8080/chat
 ```
 
-这样每个「微信账号 + 发消息用户」组合都会拥有独立的 AI 记忆，账号之间不会串台。
+## CLI 命令
 
-## 后端 API 协议
+```bash
+# 初始化配置（推荐：无参数打开浏览器可视化配置）
+bun run src/cli/index.ts init
 
-本插件通过 HTTP JSON API 与后端网关通信。二次开发者若需对接自有后端，需实现以下接口。
+# Headless 初始化（带参数则不打开浏览器）
+bun run src/cli/index.ts init --adapter <name> --url <url> --port <port>
 
-所有接口均为 `POST`，请求和响应均为 JSON。通用请求头：
+# 前台启动服务（开发调试用，Ctrl+C 停止）
+bun run src/cli/index.ts start [--adapter <name>] [--port <port>]
 
-| Header | 说明 |
-|--------|------|
-| `Content-Type` | `application/json` |
-| `AuthorizationType` | 固定值 `ilink_bot_token` |
-| `Authorization` | `Bearer <token>`（登录后获取） |
-| `X-WECHAT-UIN` | 随机 uint32 的 base64 编码 |
+# 停止后台服务
+bun run src/cli/index.ts stop
 
-### 接口列表
+# 查看服务和账号状态
+bun run src/cli/index.ts status
 
-| 接口 | 路径 | 说明 |
-|------|------|------|
-| getUpdates | `getupdates` | 长轮询获取新消息 |
-| sendMessage | `sendmessage` | 发送消息（文本/图片/视频/文件） |
-| getUploadUrl | `getuploadurl` | 获取 CDN 上传预签名 URL |
-| getConfig | `getconfig` | 获取账号配置（typing ticket 等） |
-| sendTyping | `sendtyping` | 发送/取消输入状态指示 |
+# CLI 扫码登录新账号
+bun run src/cli/index.ts login
 
-### getUpdates
+# 发送媒体文件
+bun run src/cli/index.ts sendMedia --to <userId> --file <path>
+```
 
-长轮询接口。服务端在有新消息或超时后返回。
+## 适配器配置
 
-**请求体：**
+### OpenCode 适配器
+
+连接到 OpenCode AI 后端：
+
+```bash
+bun run src/cli/index.ts start --adapter opencode --url http://localhost:3000
+```
+
+### Webhook 适配器
+
+将消息转发到自定义 HTTP 端点：
+
+```bash
+bun run src/cli/index.ts start --adapter webhook --endpoint http://your-server.com/chat
+```
+
+Webhook 请求格式：
 
 ```json
 {
-  "get_updates_buf": ""
+  "message": "用户消息内容",
+  "userId": "发送者微信ID",
+  "sessionId": "会话ID",
+  "contextToken": "上下文令牌"
 }
 ```
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `get_updates_buf` | `string` | 上次响应返回的同步游标，首次请求传空字符串 |
-
-**响应体：**
+期望响应格式：
 
 ```json
 {
-  "ret": 0,
-  "msgs": [...],
-  "get_updates_buf": "<新游标>",
-  "longpolling_timeout_ms": 35000
+  "reply": "AI 回复内容"
 }
 ```
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `ret` | `number` | 返回码，`0` = 成功 |
-| `errcode` | `number?` | 错误码（如 `-14` = 会话超时） |
-| `errmsg` | `string?` | 错误描述 |
-| `msgs` | `WeixinMessage[]` | 消息列表（结构见下方） |
-| `get_updates_buf` | `string` | 新的同步游标，下次请求时回传 |
-| `longpolling_timeout_ms` | `number?` | 服务端建议的下次长轮询超时（ms） |
+### Echo 适配器
 
-### sendMessage
+测试用适配器，原样返回用户消息：
 
-发送一条消息给用户。
+```bash
+bun run src/cli/index.ts start --adapter echo
+```
 
-**请求体：**
+## 配置文件
+
+配置保存在 `~/.weixin-clawbot-bridge/config.json`，支持三层优先级：
+
+**CLI 参数 > 配置文件 > 代码默认值**
+
+示例配置：
 
 ```json
 {
-  "msg": {
-    "to_user_id": "<目标用户 ID>",
-    "context_token": "<会话上下文令牌>",
-    "item_list": [
-      {
-        "type": 1,
-        "text_item": { "text": "你好" }
-      }
-    ]
+  "adapter": "opencode",
+  "port": 3200,
+  "opencode": {
+    "url": "http://localhost:3000"
   }
 }
 ```
 
-### getUploadUrl
+## HTTP API
 
-获取 CDN 上传预签名参数。上传文件前需先调用此接口获取 `upload_param` 和 `thumb_upload_param`。
+服务启动后提供以下 HTTP 端点：
 
-**请求体：**
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/api/login/qr` | POST | 获取登录二维码 |
+| `/api/sendMedia` | POST | 发送媒体文件 |
+| `/events` | GET | SSE 事件流（状态更新） |
 
-```json
-{
-  "filekey": "<文件标识>",
-  "media_type": 1,
-  "to_user_id": "<目标用户 ID>",
-  "rawsize": 12345,
-  "rawfilemd5": "<明文 MD5>",
-  "filesize": 12352,
-  "thumb_rawsize": 1024,
-  "thumb_rawfilemd5": "<缩略图明文 MD5>",
-  "thumb_filesize": 1040
-}
+## 状态目录
+
+所有持久化数据存储在 `~/.weixin-clawbot-bridge/` 目录：
+
+```
+~/.weixin-clawbot-bridge/
+├── config.json              # 配置文件
+├── accounts.json            # 账号索引
+├── accounts/                # 账号凭证目录
+├── weixin-clawbot-bridge.pid   # 守护进程 PID
+├── weixin-clawbot-bridge.log   # 运行日志
+└── media/                   # 下载的媒体文件
 ```
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `media_type` | `number` | `1` = IMAGE, `2` = VIDEO, `3` = FILE |
-| `rawsize` | `number` | 原文件明文大小 |
-| `rawfilemd5` | `string` | 原文件明文 MD5 |
-| `filesize` | `number` | AES-128-ECB 加密后的密文大小 |
-| `thumb_rawsize` | `number?` | 缩略图明文大小（IMAGE/VIDEO 时必填） |
-| `thumb_rawfilemd5` | `string?` | 缩略图明文 MD5（IMAGE/VIDEO 时必填） |
-| `thumb_filesize` | `number?` | 缩略图密文大小（IMAGE/VIDEO 时必填） |
+可通过环境变量 `WEIXIN_CLAWBOT_BRIDGE_STATE_DIR` 自定义路径。
 
-**响应体：**
+## 开发
 
-```json
-{
-  "upload_param": "<原图上传加密参数>",
-  "thumb_upload_param": "<缩略图上传加密参数>"
-}
+### 运行测试
+
+```bash
+bun test
 ```
 
-### getConfig
+### 类型检查
 
-获取账号配置，包括 typing ticket。
-
-**请求体：**
-
-```json
-{
-  "ilink_user_id": "<用户 ID>",
-  "context_token": "<可选，会话上下文令牌>"
-}
+```bash
+bun typecheck
 ```
 
-**响应体：**
+### 项目架构
 
-```json
-{
-  "ret": 0,
-  "typing_ticket": "<base64 编码的 typing ticket>"
-}
+```
+src/
+├── index.ts          # 包入口
+├── channel.ts        # createChannel() 编排器
+├── config.ts         # 配置管理
+├── types.ts          # 类型导出
+├── adapter/          # AI 后端适配器
+│   ├── interface.ts  # ChannelAdapter 接口
+│   ├── echo.ts       # Echo 测试适配器
+│   ├── opencode.ts   # OpenCode SDK v2 适配器
+│   ├── webhook.ts    # 通用 Webhook 适配器
+│   └── index.ts      # 适配器工厂
+├── cli/              # CLI 命令
+│   ├── index.ts      # 命令路由
+│   ├── daemon.ts     # 守护进程管理
+│   └── init.ts       # 初始化命令
+├── server/           # HTTP 服务
+│   ├── index.ts      # Bun.serve() 启动
+│   ├── routes.ts     # Hono 路由
+│   └── sse.ts        # SSE 事件总线
+└── core/             # iLink 协议核心
+    ├── api/          # HTTP API 封装
+    ├── auth/         # 登录认证
+    ├── cdn/          # CDN 上传下载
+    ├── media/        # 媒体处理
+    ├── messaging/    # 消息发送
+    ├── monitor/      # 消息轮询
+    └── storage/      # 状态存储
 ```
 
-### sendTyping
+### 添加新适配器
 
-发送或取消输入状态指示。
+1. 在 `src/adapter/` 创建新文件，实现 `ChannelAdapter` 接口
+2. 导出工厂函数 `createXxxAdapter()`
+3. 在 `src/adapter/index.ts` 的 `resolveAdapter()` 中注册
 
-**请求体：**
+## 协议说明
 
-```json
-{
-  "ilink_user_id": "<用户 ID>",
-  "typing_ticket": "<从 getConfig 获取>",
-  "status": 1
-}
-```
+本项目使用 iLink 协议与微信服务通信：
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `status` | `number` | `1` = 正在输入，`2` = 取消输入 |
+- **长轮询**：通过 `getUpdates` 持续获取新消息
+- **消息状态**：`NEW=0`（新建）、`GENERATING=1`（生成中）、`FINISH=2`（完成）
+- **媒体加密**：CDN 上传下载使用 AES-128-ECB 加密
+- **去重机制**：`client_id` 用于消息去重，相同 ID 会被静默丢弃
 
-### 消息结构
+## License
 
-#### WeixinMessage
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `seq` | `number?` | 消息序列号 |
-| `message_id` | `number?` | 消息唯一 ID |
-| `from_user_id` | `string?` | 发送者 ID |
-| `to_user_id` | `string?` | 接收者 ID |
-| `create_time_ms` | `number?` | 创建时间戳（ms） |
-| `session_id` | `string?` | 会话 ID |
-| `message_type` | `number?` | `1` = USER, `2` = BOT |
-| `message_state` | `number?` | `0` = NEW, `1` = GENERATING, `2` = FINISH |
-| `item_list` | `MessageItem[]?` | 消息内容列表 |
-| `context_token` | `string?` | 会话上下文令牌，回复时需回传 |
-
-#### MessageItem
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `type` | `number` | `1` TEXT, `2` IMAGE, `3` VOICE, `4` FILE, `5` VIDEO |
-| `text_item` | `{ text: string }?` | 文本内容 |
-| `image_item` | `ImageItem?` | 图片（含 CDN 引用和 AES 密钥） |
-| `voice_item` | `VoiceItem?` | 语音（SILK 编码） |
-| `file_item` | `FileItem?` | 文件附件 |
-| `video_item` | `VideoItem?` | 视频 |
-| `ref_msg` | `RefMessage?` | 引用消息 |
-
-#### CDN 媒体引用 (CDNMedia)
-
-所有媒体类型（图片/语音/文件/视频）通过 CDN 传输，使用 AES-128-ECB 加密：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `encrypt_query_param` | `string?` | CDN 下载/上传的加密参数 |
-| `aes_key` | `string?` | base64 编码的 AES-128 密钥 |
-
-### CDN 上传流程
-
-1. 计算文件明文大小、MD5，以及 AES-128-ECB 加密后的密文大小
-2. 如需缩略图（图片/视频），同样计算缩略图的明文和密文参数
-3. 调用 `getUploadUrl` 获取 `upload_param`（和 `thumb_upload_param`）
-4. 使用 AES-128-ECB 加密文件内容，PUT 上传到 CDN URL
-5. 缩略图同理加密并上传
-6. 使用返回的 `encrypt_query_param` 构造 `CDNMedia` 引用，放入 `MessageItem` 发送
-
-> 完整的类型定义见 [`src/api/types.ts`](src/api/types.ts)，API 调用实现见 [`src/api/api.ts`](src/api/api.ts)。
+MIT

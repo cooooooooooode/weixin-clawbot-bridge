@@ -1,17 +1,42 @@
 {
-  "name": "weixin-claw-channel",
+  "name": "weixin-clawbot-bridge",
   "version": "1.0.0",
-  "description": "WeChat channel for AI assistants via iLink protocol",
+  "description": "WeChat messaging bridge to any AI backend via iLink protocol",
   "license": "MIT",
+  "author": "cooooooooooode",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cooooooooooode/weixin-clawbot-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cooooooooooode/weixin-clawbot-bridge/issues"
+  },
+  "homepage": "https://github.com/cooooooooooode/weixin-clawbot-bridge#readme",
+  "keywords": [
+    "wechat",
+    "weixin",
+    "wechat-bot",
+    "weixin-bot",
+    "wechat-bridge",
+    "clawbot",
+    "ilink",
+    "bun",
+    "typescript",
+    "chatbot",
+    "ai-agent"
+  ],
   "type": "module",
   "main": "src/index.ts",
   "bin": {
-    "weixin-claw": "src/cli/index.ts"
+    "weixin-clawbot-bridge": "src/cli/index.ts"
   },
   "exports": {
     ".": "./src/index.ts",
     "./adapter": "./src/adapter/index.ts"
   },
+  "files": [
+    "src/"
+  ],
   "scripts": {
     "test": "bun test",
     "typecheck": "tsc --noEmit"

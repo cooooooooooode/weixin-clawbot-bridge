@@ -4,11 +4,11 @@ import { spawn as nodeSpawn } from "node:child_process"
 import path from "node:path"
 
 function pidPath(): string {
-  return path.join(resolveStateDir(), "weixin-claw.pid")
+  return path.join(resolveStateDir(), "weixin-clawbot-bridge.pid")
 }
 
 export function logPath(): string {
-  return path.join(resolveStateDir(), "weixin-claw.log")
+  return path.join(resolveStateDir(), "weixin-clawbot-bridge.log")
 }
 
 export function running(): { pid: number; alive: boolean } | null {
@@ -28,7 +28,7 @@ export function running(): { pid: number; alive: boolean } | null {
 export async function spawn(): Promise<number> {
   const existing = running()
   if (existing?.alive) {
-    console.log(`[weixin-claw] 服务已在运行 (PID ${existing.pid})`)
+    console.log(`[weixin-clawbot-bridge] 服务已在运行 (PID ${existing.pid})`)
     return existing.pid
   }
 
@@ -53,8 +53,8 @@ export async function spawn(): Promise<number> {
   child.unref()
 
   await Bun.write(pidPath(), String(pid))
-  console.log(`[weixin-claw] 服务已启动 PID=${pid}`)
-  console.log(`[weixin-claw] 日志: ${log}`)
+  console.log(`[weixin-clawbot-bridge] 服务已启动 PID=${pid}`)
+  console.log(`[weixin-clawbot-bridge] 日志: ${log}`)
 
   return pid
 }
@@ -62,20 +62,20 @@ export async function spawn(): Promise<number> {
 export async function stop(): Promise<boolean> {
   const state = running()
   if (!state) {
-    console.log("[weixin-claw] 没有运行中的服务")
+    console.log("[weixin-clawbot-bridge] 没有运行中的服务")
     return false
   }
   if (!state.alive) {
-    console.log(`[weixin-claw] PID ${state.pid} 已不存在，清理 PID 文件`)
+    console.log(`[weixin-clawbot-bridge] PID ${state.pid} 已不存在，清理 PID 文件`)
     unlinkSync(pidPath())
     return false
   }
 
   try {
     process.kill(state.pid, "SIGTERM")
-    console.log(`[weixin-claw] 已发送 SIGTERM 到 PID ${state.pid}`)
+    console.log(`[weixin-clawbot-bridge] 已发送 SIGTERM 到 PID ${state.pid}`)
   } catch (err) {
-    console.error(`[weixin-claw] kill 失败: ${err}`)
+    console.error(`[weixin-clawbot-bridge] kill 失败: ${err}`)
     return false
   }
 
@@ -90,6 +90,6 @@ export async function stop(): Promise<boolean> {
   }
 
   if (existsSync(pidPath())) unlinkSync(pidPath())
-  console.log("[weixin-claw] 服务已停止")
+  console.log("[weixin-clawbot-bridge] 服务已停止")
   return true
 }

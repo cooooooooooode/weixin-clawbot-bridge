@@ -1,4 +1,4 @@
-// weixin-claw-channel entry point
+// weixin-clawbot-bridge entry point
 // Full createChannel implementation will be added in subsequent tasks
 
 export { getUpdates, sendMessage, getUploadUrl, getConfig, sendTyping } from "./core/api/api.js"

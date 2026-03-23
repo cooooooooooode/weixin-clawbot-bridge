@@ -11,10 +11,10 @@ export type Logger = {
 }
 
 function createLogger(prefix?: string): Logger {
-  const tag = prefix ? `[weixin-claw][${prefix}]` : "[weixin-claw]"
+  const tag = prefix ? `[weixin-clawbot-bridge][${prefix}]` : "[weixin-clawbot-bridge]"
   return {
     info(msg: string) { console.log(`${tag} ${msg}`) },
-    debug(msg: string) { if (process.env.WEIXIN_CLAW_DEBUG) console.debug(`${tag} ${msg}`) },
+    debug(msg: string) { if (process.env.WEIXIN_CLAWBOT_BRIDGE_DEBUG) console.debug(`${tag} ${msg}`) },
     warn(msg: string) { console.warn(`${tag} ${msg}`) },
     error(msg: string) { console.error(`${tag} ${msg}`) },
     withAccount(id: string) { return createLogger(id) },

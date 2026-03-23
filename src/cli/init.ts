@@ -79,14 +79,14 @@ async function headless(vals: Record<string, string | undefined>) {
   }
 
   await save(cfg)
-  console.log(`[weixin-claw] 配置已保存: ${configPath()}`)
+  console.log(`[weixin-clawbot-bridge] 配置已保存: ${configPath()}`)
   console.log(JSON.stringify(cfg, null, 2))
 
   // Spawn daemon
   const pid = await spawnDaemon()
   const port = cfg.port ?? 3200
   console.log()
-  console.log(`[weixin-claw] 通过 HTTP API 完成扫码登录:`)
+  console.log(`[weixin-clawbot-bridge] 通过 HTTP API 完成扫码登录:`)
   console.log(`  POST http://localhost:${port}/api/login/qr`)
   console.log(`  GET  http://localhost:${port}/events (SSE)`)
   console.log(`  GET  http://localhost:${port}/api/status`)
@@ -169,8 +169,8 @@ async function interactive() {
   const server = Bun.serve({ port, fetch: app.fetch, idleTimeout: 255 })
   const url = `http://localhost:${server.port}`
 
-  console.log(`[weixin-claw] 配置页面: ${url}`)
-  console.log(`[weixin-claw] 在浏览器中完成配置和登录后，点击"启动服务"`)
+  console.log(`[weixin-clawbot-bridge] 配置页面: ${url}`)
+  console.log(`[weixin-clawbot-bridge] 在浏览器中完成配置和登录后，点击"启动服务"`)
 
   // Open browser
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open"
